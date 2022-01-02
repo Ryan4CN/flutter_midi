@@ -37,7 +37,7 @@ public class FlutterMidiPlugin implements MethodCallHandler,FlutterPlugin {
     onAttachedToEngine(binding.getApplicationContext(), binding.getBinaryMessenger());
   }
 
-  @Override
+  // @Override
   public void onAttachedToEngine(Context applicationContext, BinaryMessenger messenger) {
     methodChannel = new MethodChannel(messenger, "flutter_midi");
     methodChannel.setMethodCallHandler(new FlutterMidiPlugin());
