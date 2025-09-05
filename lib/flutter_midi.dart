@@ -18,6 +18,7 @@ class FlutterMidi extends FlutterMidiPlatform {
     required ByteData? sf2,
     String name = 'instrument.sf2',
   }) async {
+    debugPrint('[FlutterMidi] - prepare $name');
     if (sf2 == null) return Future.value(null);
     if (kIsWeb) return _channel.invokeMethod('prepare_midi');
     File? _file = await writeToFile(sf2, name: name);

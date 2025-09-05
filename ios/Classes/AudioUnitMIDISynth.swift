@@ -113,16 +113,18 @@ class AudioUnitMIDISynth: NSObject {
     /// This will load the default sound font and set the synth unit's property.
     /// - postcondition: `self.midisynthUnit` will have it's sound font url set.
     func loadMIDISynthSoundFont() {
-
-        if var bankURL = bankUrl {
+        if let bankUrl = bankUrl {
+            // ✅ 转成 NSURL → CFURL
+            var cfurl: CFURL = (bankUrl as NSURL) as CFURL
 
             let status = AudioUnitSetProperty(
                 self.midisynthUnit!,
                 AudioUnitPropertyID(kMusicDeviceProperty_SoundBankURL),
                 AudioUnitScope(kAudioUnitScope_Global),
                 0,
-                &bankURL,
-                UInt32(MemoryLayout<URL>.size))
+                &cfurl,
+                UInt32(MemoryLayout<CFURL>.size) // ✅ 注意这里改成 CFURL
+            )
 
             AudioUtils.CheckError(status)
             print("loaded sound font")

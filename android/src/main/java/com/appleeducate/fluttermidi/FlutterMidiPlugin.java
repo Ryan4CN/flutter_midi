@@ -8,7 +8,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.plugin.common.BinaryMessenger;
 import java.io.File;
 import java.io.IOException;
@@ -24,23 +23,11 @@ public class FlutterMidiPlugin implements MethodCallHandler,FlutterPlugin {
   private MethodChannel methodChannel;
   private Context applicationContext;
 
-  /** Plugin registration. */
-  @SuppressWarnings("deprecation")
-  public static void registerWith(Registrar registrar) {
-    final FlutterMidiPlugin instance = new FlutterMidiPlugin();
-    instance.onAttachedToEngine(registrar.context(), registrar.messenger());
-
-  }
-
   @Override
   public void onAttachedToEngine(FlutterPluginBinding binding) {
-    onAttachedToEngine(binding.getApplicationContext(), binding.getBinaryMessenger());
-  }
-
-  // @Override
-  public void onAttachedToEngine(Context applicationContext, BinaryMessenger messenger) {
-    methodChannel = new MethodChannel(messenger, "flutter_midi");
-    methodChannel.setMethodCallHandler(new FlutterMidiPlugin());
+      methodChannel = new MethodChannel(binding.getBinaryMessenger(), "flutter_midi");
+      methodChannel.setMethodCallHandler(this); // 用 this，不要 new
+      applicationContext = binding.getApplicationContext();
   }
 
   @Override
@@ -63,6 +50,7 @@ public class FlutterMidiPlugin implements MethodCallHandler,FlutterPlugin {
         synth.getChannels()[0].programChange(0);
         synth.getChannels()[1].programChange(1);
         recv = synth.getReceiver();
+        result.success("PREPARE_MIDI");
       } catch (IOException e) {
         e.printStackTrace();
         result.error("PREPARE_MIDI", e.getMessage(), e);
@@ -81,6 +69,7 @@ public class FlutterMidiPlugin implements MethodCallHandler,FlutterPlugin {
         synth.getChannels()[0].programChange(0);
         synth.getChannels()[1].programChange(1);
         recv = synth.getReceiver();
+        result.success("CHANGE_SOUND");
       } catch (IOException e) {
         e.printStackTrace();
         result.error("CHANGE_SOUND", e.getMessage(), e);
@@ -94,6 +83,7 @@ public class FlutterMidiPlugin implements MethodCallHandler,FlutterPlugin {
         ShortMessage msg = new ShortMessage();
         msg.setMessage(ShortMessage.NOTE_ON, 0, _note, 127);
         recv.send(msg, -1);
+        result.success("PLAY_MIDI_NOTE");
       } catch (InvalidMidiDataException e) {
         e.printStackTrace();
         result.error("PLAY_MIDI_NOTE", e.getMessage(), e);
@@ -104,10 +94,13 @@ public class FlutterMidiPlugin implements MethodCallHandler,FlutterPlugin {
         ShortMessage msg = new ShortMessage();
         msg.setMessage(ShortMessage.NOTE_OFF, 0, _note, 127);
         recv.send(msg, -1);
+        result.success("STOP_MIDI_NOTE");
       } catch (InvalidMidiDataException e) {
         e.printStackTrace();
         result.error("STOP_MIDI_NOTE", e.getMessage(), e);
       }
+    } else if (call.method.equals("unmute")) {
+        result.success("UNMUTE");
     } else {
       result.notImplemented();
     }
